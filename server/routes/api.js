@@ -9,7 +9,8 @@ app.get( '/', (req,resp) => {
 });
 
 app.get('/asanas', asanas.getAsanas);
-app.get('/asanas/:query', asanas.getAsanaByQuery);
+app.get('/asanas/:id', asanas.getAsanaById);
+app.get('/asanas/search/:query', asanas.getAsanaByQuery);
 app.get('/types', asanas.getTypes);
 app.get('/types/:query', asanas.getAsanaByType);
 

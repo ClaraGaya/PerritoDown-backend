@@ -7,7 +7,7 @@ const getRoutines = (req, res) => {
     " GROUP BY R.ID ORDER BY R.ID;"
     db.query(query)
     .then( (data) => {
-      res.status(200).json({routines: data});
+      res.status(200).json({data: data});
     })
     .catch(function (err) {
       console.log(err);
@@ -20,10 +20,9 @@ const getRoutinesByUser = (req, res) => {
     " FROM Routines R" +
     " INNER JOIN UserAsanas ON R.ID=UserAsanas.RoutineID" +
     " GROUP BY R.ID ORDER BY R.ID) Z where Z.UserId=" + userId;
-    
     db.query(query)
     .then( (data) => {
-        res.status(201).send({routines: data, userId: userId});
+        res.status(200).json({data: data});
     })
     .catch(function (err) {
         console.log(err);
@@ -36,10 +35,9 @@ const getRoutineById = (req, res) => {
     " FROM Routines R" +
     " INNER JOIN UserAsanas ON R.ID=UserAsanas.RoutineID" +
     " GROUP BY R.ID ORDER BY R.ID) Z where Z.Id=" + routineId;
-    
     db.query(query)
     .then( (data) => {
-        res.status(201).send({routines: data, routineId: routineId});
+        res.status(200).json({ data: data[0] });
     })
     .catch(function (err) {
         console.log(err);
