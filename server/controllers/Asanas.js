@@ -52,4 +52,6 @@ const getTypes = (req, res) => {
     });
 }
 
+
+
 module.exports = {getAsanas, getAsanaById, getAsanaByType, getAsanaByQuery, getTypes};
