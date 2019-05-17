@@ -1,14 +1,15 @@
-
 DROP TABLE IF EXISTS Users cascade;
 DROP TABLE IF EXISTS Asanas cascade;
 DROP TABLE IF EXISTS Routines cascade;
 DROP TABLE IF EXISTS UserAsanas cascade;
 
 CREATE TABLE Users (
-    ID SERIAL PRIMARY KEY,
-    UserName VARCHAR(40) NOT NULL,
-    Email VARCHAR(50) NOT NULL,
-    Pwd VARCHAR(50) NOT NULL  
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(255) UNIQUE,
+    password VARCHAR(255),
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    email VARCHAR(255) UNIQUE  
 );
 
 CREATE TABLE Asanas (
@@ -33,4 +34,3 @@ CREATE TABLE UserAsanas (
     AsanaID integer,
     RoutineID integer
 );
-
