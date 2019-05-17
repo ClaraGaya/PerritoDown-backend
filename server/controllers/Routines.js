@@ -49,22 +49,30 @@ const addRoutine =  (req, res, next)  => {
     const userId = 1; 
     db.task(t => {
         // execute a chain of queries against the task context, and return the result:
-        return t.one('INSERT INTO Routines (Name, Description, UserID) VALUES ($1, $2, $3) RETURNING ID', [name, description, userId])
+        return t.one('INSERT INTO Routines (Name, Description, UserID) VALUES ($1, $2, $3) RETURNING *', [name, description, userId])
         .then(data => {
-            const routineId = data.id;
+            const routine = data;
             const arrObj = asanasArr.reduce( (acc,asanaID) => {
                 acc.push({
                     userid: userId,
                     asanaid: asanaID,
-                    routineid: routineId, 
+                    routineid: routine.id, 
                 })
                 return acc;
             }, []);
             // generating a multi-row insert query inside a function. params:  data (arr or obj), columns (arr), table (string)
             const multi =  pgp.helpers.insert(arrObj, ['userid', 'asanaid', 'routineid'],  'userasanas' ) + ' RETURNING ID';
-            return t.any(multi)
+            return t.map(multi, [], a => + a.id)
             .then(data => {
-                res.status(201).send(`${data.length} Asanas added to Routine ${routineId}`)
+                res.status(201).json({
+                    status: 'success',
+                    message: 'Inserted new routine',
+                    id: routine.id,
+                    name: routine.name,
+                    description: routine.description,
+                    asanas: asanasArr,
+                    asanasCount: data.length
+                })
             })
             .catch(err => {
                 return next(err)   
@@ -75,27 +83,6 @@ const addRoutine =  (req, res, next)  => {
         return next(err)   
     });
 };
-
-const insertMultiUserAsanas = (routineId, asanasArr, userId, next) => {
-    const arrObj = asanasArr.reduce( (acc,asanaID) => {
-        acc.push({
-            userid: userId,
-            asanaid: asanaID,
-            routineid: routineId, 
-        })
-        return acc;
-    }, []);
-    // generating a multi-row insert query inside a function. params:  data (arr or obj), columns (arr), table (string)
-    const multi =  pgp.helpers.insert(arrObj, ['userid', 'asanaid', 'routineid'],  'userasanas' ) + ' RETURNING ID';
-    return db.any(multi)
-    .then(data => {
-        res.status(201).send(`${data.length} Asanas added to Routine ${routineId}`)
-    })
-    .catch(err => {
-        return next(err)   
-    });
-}
-
 
 const updateRoutine =  (req, res, next)  => {
     db.task( t => {
@@ -126,54 +113,34 @@ const updateRoutine =  (req, res, next)  => {
     .catch(function (err) {
       return next(err);
     });
-
-
-    // db.task( t => {
-    //     // return t.batch([
-    //     //     t.none('UPDATE Routines SET Name = $1, Description = $2 WHERE id = $3', [name, description, id]),
-    //     //     t.result('DELETE FROM userasanas WHERE routineid = $1', [id], b => b.rowCount)
-    //     // ])
-    //     return t.result('DELETE FROM userasanas WHERE routineid = $1', [id], b => b.rowCount)
-    //     .then(data => {
-    //         // insertMultiUserAsanas(routineId, asanasArr, userId, next);
-    //         const arrObj = asanasArr.reduce( (acc,asanaId) => {
-    //             acc.push({
-    //                 userid: userId,
-    //                 asanaid: asanaId,
-    //                 routineid: id, 
-    //             })
-    //             return acc;
-    //         }, []);
-    //         // generating a multi-row insert query inside a function. params:  data (arr or obj), columns (arr), table (string)
-    //         const multi =  pgp.helpers.insert(arrObj, ['userid', 'asanaid', 'routineid'],  'userasanas' ) + ' RETURNING ID';
-    //         return db.any(multi)
-    //         .then(data => {
-    //             res.status(201).send(`${data.length} Asanas added to Routine ${id}`)
-    //         })
-    //         .catch(err => {
-    //             return next(err)   
-    //         });
-    //     })
-    // })
-    
-    // // .then(data => {
-    // //     res.status(201).send(`Routine updated with id: ${data[0], data[1]}`)
-    // // })
-    // .catch(error => {
-    //     console.log('ERROR:', error);
-    // });
 };
 
 const deleteRoutine =  (req, res, next)  => {
-    const { id } = req.body;
     db.task( t => {
         return t.batch([
-            db.result('DELETE FROM Routines WHERE ID = $1', [id], a => a.rowCount),
-            db.result('DELETE FROM userasanas WHERE routineid = $1', [id], b => b.rowCount)
+            db.result('DELETE FROM Routines WHERE ID = $1', [req.params.id], a => a.rowCount),
+            db.result('DELETE FROM userasanas WHERE routineid = $1', [req.params.id], b => b.rowCount)
         ])
     })
     .then(data => {
-        res.status(200).send(`Routine deleted with ID: ${data[0]}, ${data[1]},`)
+        // res.status(200).send(`Routine deleted with ID: ${data[0]}, ${data[1]},`)
+        if (data[0] === 0) {
+            res.status(404)
+            .json({
+              status: 'success',
+              message: `Removed 0 routines`,
+              rowCount: 0
+            });
+          }
+          else {
+            res.status(200)
+            .json({
+              status: 'success',
+              message: `Removed ${data[0]} routine`,
+              id: Number(req.params.id),
+              rowCount: data[0]
+            });
+          }
     }) .catch(err => {
         return next(err)   
     });

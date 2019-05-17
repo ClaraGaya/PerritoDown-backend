@@ -21,9 +21,12 @@ app.get('/types/:query', asanas.getAsanaByType);
 app.get('/routines', routines.getRoutines);
 app.get('/:user/routines', routines.getRoutinesByUser);
 app.get('/:user/routines/:id', routines.getRoutineById);
-app.post('/addroutine', routines.addRoutine);
-app.put('/updateroutine/:id', routines.updateRoutine);
-app.delete('/deleteroutine', routines.deleteRoutine);
+
+app.post('/routine', routines.addRoutine);
+
+app.put('/routine/:id', routines.updateRoutine);
+
+app.delete('/routine/:id', routines.deleteRoutine);
 
 app.get('/users', users.getUsers);
 

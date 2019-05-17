@@ -112,6 +112,42 @@ describe('GET /api/:user/routines', () => {
     });
 });
 
+describe('POST /api/routine', () => {
+    it('adds a new routine', (done) => {
+        request(ROOT)
+            .post('/routine')
+            .type('json')
+            .send({
+                "name": "My new routine",
+                "description": "Adding a new routine of asanas for tests purposes on our test database using supertest",
+                "asanasArr":[3,4,5]
+            })
+            .end((err, res) => {
+                expect(res.status).to.equal(201);
+                expect(res.body).to.be.an('object');
+                expect(res.body.asanasCount).to.be.a('number');
+                expect(res.body.id).to.be.a('number');
+                expect(res.body.name).to.be.a('string');
+                expect(res.body.description).to.be.a('string');
+                expect(res.body.asanas).to.be.an('array');
+                done();
+            });
+    });
+});
+
+describe('DELETE /api/routine/:id', () => {  
+    it('deletes a routine with the id passed', (done) => {
+        request(ROOT)
+            .delete('/routine/1')
+            .type('json')
+            .end((err, res) => {
+                expect(res.status).to.equal(200);
+                expect(res.body.id).to.be.a('number');
+                expect(res.body.rowCount).to.eql(1);
+                done();
+            });
+    });
+});
 
 
 
