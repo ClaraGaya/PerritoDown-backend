@@ -1,4 +1,4 @@
-const { db, pgp } = require('../db.config');
+const { db, pgp } = require('../../db/db.config');
 
 const getAsanas = (req, res) => {
   db.query('SELECT * from Asanas')

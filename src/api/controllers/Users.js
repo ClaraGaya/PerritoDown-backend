@@ -1,4 +1,4 @@
-const { db } = require('../db.config');
+const { db } = require('../../db/db.config');
 
 const getUsers = (req, res) => {
     db.query('SELECT * from Users')

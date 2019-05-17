@@ -1,4 +1,4 @@
-const { db, pgp } = require('../db.config');
+const { db, pgp } = require('../../db/db.config');
 
 const getRoutines = (req, res) => {
     const query = "SELECT R.ID, R.name, R.description, R.UserId, array_to_string(array_agg(UserAsanas.AsanaId),',') AS Asanas" +

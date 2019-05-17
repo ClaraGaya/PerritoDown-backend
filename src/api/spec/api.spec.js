@@ -1,7 +1,7 @@
 process.env.NODE_ENV = 'test';
 const expect = require('chai').expect;
 const request = require('supertest');
-const config = require('../config');
+const config = require('../../db/config');
 const PORT = config.PORT[process.env.NODE_ENV];
 const ROOT = `http://localhost:${PORT}/api`;
 
@@ -9,35 +9,36 @@ require('../../server');
 
 
 
-// before(() => {
-//     // connect to db
-//     const { db, pgp } = require('../db.config');
-//     const { schema, seed } = require('../data.js');
-//     // drop tables and create them again
-//     db.tx(t => {
-//         return t.batch([
-//             // drop all tables;
-//             t.none('DROP TABLE IF EXISTS users'),
-//             t.none('DROP TABLE IF EXISTS Routines'),
-//             t.none('DROP TABLE IF EXISTS UserAsanas'),
-//             t.none('DROP TABLE IF EXISTS asanas'),
+before(() => {
+    it(`drops, creates and seeds tables in the test database once before all tests`, () => {
+        // connect to db
+        const { db, pgp } = require('../../db/db.config');
+        const { schema, seed } = require('../spec/data');
+        // drop tables and create them again
+        db.tx(t => {
+            return t.batch([
+                // drop all tables;
+                t.none('DROP TABLE IF EXISTS users'),
+                t.none('DROP TABLE IF EXISTS Routines'),
+                t.none('DROP TABLE IF EXISTS UserAsanas'),
+                t.none('DROP TABLE IF EXISTS asanas'),
+                
+                // create all tables;
+                t.none(schema),
             
-//             // create all tables;
-//             t.none(schema),
-           
-//             // insert records into tables;
-//             t.none(seed)
-          
-//         ]);
-//     })
-//     .then(() => {
-//         console.log('*** DATABASE TESTS RESEEDED ***');
-//     })
-//     .catch(error => {
-//         console.log('FAILED:', error);
-//     })
-//     .finally(pgp.end);
-// });
+                // insert records into tables;
+                t.none(seed)
+            
+            ]);
+        })
+        .then(() => {
+            console.log('*** TEST DATABASE RESEEDED ***');
+        })
+        .catch(error => {
+            console.log('FAILED:', error);
+        })
+    })
+});
 
 describe('GET /api/', () => {
     it('returns the status ok', (done) => {
@@ -136,16 +137,19 @@ describe('POST /api/routine', () => {
 });
 
 describe('DELETE /api/routine/:id', () => {  
-    it('deletes a routine with the id passed', (done) => {
+    it('should delete a SINGLE routine passing an id', done => {
         request(ROOT)
-            .delete('/routine/1')
-            .type('json')
-            .end((err, res) => {
+          .get('/routines')
+          .end(function(err, res){
+            request(ROOT)
+              .delete('/routine/'+ res.body.data[0].id)
+              .end((err, res) => {
                 expect(res.status).to.equal(200);
                 expect(res.body.id).to.be.a('number');
                 expect(res.body.rowCount).to.eql(1);
                 done();
             });
+          });
     });
 });
 
